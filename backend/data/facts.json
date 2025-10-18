@@ -1,0 +1,28 @@
+{
+    "full_name": "Edward Gallagher",
+    "name": "Ed",
+    "current_role": "AVP, Marketing Analytics",
+    "location": "San Diego, CA",
+    "email": "ed.gallagher@gmail    .com",
+    "linkedin": "https://www.linkedin.com/in/edgallagherdirectmarketingguru/",
+    "specialties": [
+      "Direct Marketing",
+      "Consumer Banking2",
+      "Marketing Analytics"
+    ],
+    "years_experience": 20,
+    "Masterseducation": [
+      {
+        "degree": "MPIA",
+        "institution": "University of California, San Diego",
+        "year": "1996"
+      }
+    ],
+    "Bachelorseducation": [
+      {
+        "degree": "BA",
+        "institution": "University of California, Berkeley",
+        "year": "1990"
+      }
+    ]
+  }     

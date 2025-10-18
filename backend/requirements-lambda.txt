@@ -1,0 +1,9 @@
+fastapi==0.118.0
+mangum==0.19.0
+openai==2.1.0
+python-dotenv==1.1.1
+python-multipart==0.0.20
+boto3==1.40.45
+pypdf==6.1.1
+pydantic==2.11.10
+pydantic-core==2.33.2
