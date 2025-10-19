@@ -16,6 +16,7 @@ export default function Twin() {
     const [isLoading, setIsLoading] = useState(false);
     const [sessionId, setSessionId] = useState<string>('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,7 +24,11 @@ export default function Twin() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+        // Focus input after messages update (especially after bot response)
+        if (!isLoading) {
+            inputRef.current?.focus();
+        }
+    }, [messages, isLoading]);
 
     const sendMessage = async () => {
         if (!input.trim() || isLoading) return;
@@ -177,6 +182,7 @@ export default function Twin() {
             <div className="border-t border-gray-200 p-4 bg-white rounded-b-lg">
                 <div className="flex gap-2">
                     <input
+                        ref={inputRef}
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
