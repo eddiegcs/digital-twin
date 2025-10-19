@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Bot, User, Send } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Send, Bot, User } from 'lucide-react';
 
 interface Message {
     id: string;
@@ -24,11 +24,7 @@ export default function Twin() {
 
     useEffect(() => {
         scrollToBottom();
-        // Focus input after messages update (especially after bot response)
-        if (!isLoading) {
-            inputRef.current?.focus();
-        }
-    }, [messages, isLoading]);
+    }, [messages]);
 
     const sendMessage = async () => {
         if (!input.trim() || isLoading) return;
@@ -45,26 +41,18 @@ export default function Twin() {
         setIsLoading(true);
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            console.log('Sending message to:', apiUrl);
-            
-            const response = await fetch(`${apiUrl}/chat`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    message: input,
+                    message: userMessage.content,
                     session_id: sessionId || undefined,
                 }),
             });
 
-            console.log('Response status:', response.status);
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(`Failed to send message: ${response.status}`);
-            }
+            if (!response.ok) throw new Error('Failed to send message');
 
             const data = await response.json();
 
@@ -81,18 +69,20 @@ export default function Twin() {
 
             setMessages(prev => [...prev, assistantMessage]);
         } catch (error) {
-            console.error('Error details:', error);
-            console.error('Error type:', error instanceof Error ? error.message : String(error));
-            // Add error message with more details
+            console.error('Error:', error);
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: `Sorry, I encountered an error. Please try again. ${error instanceof Error ? error.message : ''}`,
+                content: 'Sorry, I encountered an error. Please try again.',
                 timestamp: new Date(),
             };
             setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
+            // Refocus the input after message is sent
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 100);
         }
     };
 
@@ -102,6 +92,15 @@ export default function Twin() {
             sendMessage();
         }
     };
+
+    // Check if avatar exists
+    const [hasAvatar, setHasAvatar] = useState(false);
+    useEffect(() => {
+        // Check if avatar.png exists
+        fetch('/avatar.png', { method: 'HEAD' })
+            .then(res => setHasAvatar(res.ok))
+            .catch(() => setHasAvatar(false));
+    }, []);
 
     return (
         <div className="flex flex-col h-full bg-gray-50 rounded-lg shadow-lg">
@@ -118,9 +117,17 @@ export default function Twin() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 && (
                     <div className="text-center text-gray-500 mt-8">
-                        <Bot className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                        <p>Hello, I&apos;m the Digital Twin for Ed Gallagher.</p>
-                        <p className="text-sm mt-2">Ask me anything about my skills and experience.</p>
+                        {hasAvatar ? (
+                            <img 
+                                src="/avatar.png" 
+                                alt="Digital Twin Avatar" 
+                                className="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-gray-300"
+                            />
+                        ) : (
+                            <Bot className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                        )}
+                        <p>Hello! I&apos;m your Digital Twin.</p>
+                        <p className="text-sm mt-2">Ask me anything about AI deployment!</p>
                     </div>
                 )}
 
@@ -133,9 +140,17 @@ export default function Twin() {
                     >
                         {message.role === 'assistant' && (
                             <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                                    <Bot className="w-5 h-5 text-white" />
-                                </div>
+                                {hasAvatar ? (
+                                    <img 
+                                        src="/avatar.png" 
+                                        alt="Digital Twin Avatar" 
+                                        className="w-8 h-8 rounded-full border border-slate-300"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+                                        <Bot className="w-5 h-5 text-white" />
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -169,9 +184,17 @@ export default function Twin() {
                 {isLoading && (
                     <div className="flex gap-3 justify-start">
                         <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                                <Bot className="w-5 h-5 text-white" />
-                            </div>
+                            {hasAvatar ? (
+                                <img 
+                                    src="/avatar.png" 
+                                    alt="Digital Twin Avatar" 
+                                    className="w-8 h-8 rounded-full border border-slate-300"
+                                />
+                            ) : (
+                                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+                                    <Bot className="w-5 h-5 text-white" />
+                                </div>
+                            )}
                         </div>
                         <div className="bg-white border border-gray-200 rounded-lg p-3">
                             <div className="flex space-x-2">
@@ -191,16 +214,14 @@ export default function Twin() {
                 <div className="flex gap-2">
                     <input
                         ref={inputRef}
-                        id="chat-input"
-                        name="message"
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyPress}
                         placeholder="Type your message..."
-                        autoComplete="off"
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-600 focus:border-transparent text-gray-800"
                         disabled={isLoading}
+                        autoFocus
                     />
                     <button
                         onClick={sendMessage}
