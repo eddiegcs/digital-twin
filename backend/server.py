@@ -38,7 +38,7 @@ bedrock_client = boto3.client(
 # - amazon.nova-lite-v1:0   (balanced - default)
 # - amazon.nova-pro-v1:0    (most capable, higher cost)
 # Remember the Heads up: you might need to add us. or eu. prefix to the below model id
-BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0")
+BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "amazon.titan-text-express-v1")
 
 # Memory storage configuration
 USE_S3 = os.getenv("USE_S3", "false").lower() == "true"
@@ -121,24 +121,37 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
             "content": [{"text": msg["content"]}]
         })
     
+    # For Titan models (don't support system parameter), prepend system to first message
+    if "titan" in BEDROCK_MODEL_ID.lower() and len(conversation) == 0:
+        # First message in conversation - include system prompt with user message
+        current_message = f"{prompt()}\n\nUser: {user_message}"
+    else:
+        current_message = user_message
+    
     # Add current user message
     messages.append({
         "role": "user",
-        "content": [{"text": user_message}]
+        "content": [{"text": current_message}]
     })
     
     try:
-        # Call Bedrock using the converse API with system prompt
-        response = bedrock_client.converse(
-            modelId=BEDROCK_MODEL_ID,
-            messages=messages,
-            system=[{"text": prompt()}],  # Use proper system parameter
-            inferenceConfig={
+        # Prepare converse API parameters
+        converse_params = {
+            "modelId": BEDROCK_MODEL_ID,
+            "messages": messages,
+            "inferenceConfig": {
                 "maxTokens": 2000,
                 "temperature": 0.7,
                 "topP": 0.9
             }
-        )
+        }
+        
+        # Only use system parameter for models that support it (Anthropic models)
+        if "anthropic" in BEDROCK_MODEL_ID.lower():
+            converse_params["system"] = [{"text": prompt()}]
+        
+        # Call Bedrock using the converse API
+        response = bedrock_client.converse(**converse_params)
         
         # Extract the response text
         return response["output"]["message"]["content"][0]["text"]
