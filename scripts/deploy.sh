@@ -24,15 +24,9 @@ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
-  -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
+  -backend-config="key=env:/${ENVIRONMENT}/terraform.tfstate" \
   -backend-config="region=${AWS_DEFAULT_REGION}" \
   -backend-config="encrypt=true"
-
-if ! terraform workspace list | grep -q "$ENVIRONMENT"; then
-  terraform workspace new "$ENVIRONMENT"
-else
-  terraform workspace select "$ENVIRONMENT"
-fi
 
 # Use prod.tfvars for production environment
 if [ "$ENVIRONMENT" = "prod" ]; then

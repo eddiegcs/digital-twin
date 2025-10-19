@@ -27,20 +27,9 @@ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 echo "🔧 Initializing Terraform with S3 backend..."
 terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
-  -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
+  -backend-config="key=env:/${ENVIRONMENT}/terraform.tfstate" \
   -backend-config="region=${AWS_DEFAULT_REGION}" \
   -backend-config="encrypt=true"
-
-# Check if workspace exists
-if ! terraform workspace list | grep -q "$ENVIRONMENT"; then
-    echo "❌ Error: Workspace '$ENVIRONMENT' does not exist"
-    echo "Available workspaces:"
-    terraform workspace list
-    exit 1
-fi
-
-# Select the workspace
-terraform workspace select "$ENVIRONMENT"
 
 echo "📦 Emptying S3 buckets..."
 
