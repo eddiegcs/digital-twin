@@ -73,7 +73,14 @@ jobs:
         id: deploy_outputs
         working-directory: ./terraform
         run: |
-          terraform workspace select ${{ github.event.inputs.environment || 'dev' }}
+          # Reinitialize with the environment-specific state
+          export AWS_DEFAULT_REGION=us-west-2
+          terraform init -reconfigure \
+            -backend-config="bucket=twin-terraform-state-443870713716" \
+            -backend-config="key=env:/${{ github.event.inputs.environment || 'dev' }}/terraform.tfstate" \
+            -backend-config="region=us-west-2" \
+            -backend-config="encrypt=true"
+          
           echo "cloudfront_url=$(terraform output -raw cloudfront_url)" >> $GITHUB_OUTPUT
           echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
           echo "frontend_bucket=$(terraform output -raw s3_frontend_bucket)" >> $GITHUB_OUTPUT
