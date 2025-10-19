@@ -51,6 +51,12 @@ echo "NEXT_PUBLIC_API_URL=$API_URL" > .env.production
 
 npm install
 npm run build
+
+# Copy avatar if it exists
+if [ -f public/avatar.png ]; then
+  cp public/avatar.png out/avatar.png
+fi
+
 aws s3 sync ./out "s3://$FRONTEND_BUCKET/" --delete
 cd ..
 
