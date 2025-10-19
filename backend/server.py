@@ -38,7 +38,7 @@ bedrock_client = boto3.client(
 # - amazon.nova-lite-v1:0   (balanced - default)
 # - amazon.nova-pro-v1:0    (most capable, higher cost)
 # Remember the Heads up: you might need to add us. or eu. prefix to the below model id
-BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")
+BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0")
 
 # Memory storage configuration
 USE_S3 = os.getenv("USE_S3", "false").lower() == "true"
@@ -114,12 +114,6 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
     # Build messages in Bedrock format
     messages = []
     
-    # Add system prompt as first user message (Bedrock convention)
-    messages.append({
-        "role": "user", 
-        "content": [{"text": f"System: {prompt()}"}]
-    })
-    
     # Add conversation history (limit to last 10 exchanges to manage context)
     for msg in conversation[-20:]:  # Last 10 back-and-forth exchanges
         messages.append({
@@ -134,10 +128,11 @@ def call_bedrock(conversation: List[Dict], user_message: str) -> str:
     })
     
     try:
-        # Call Bedrock using the converse API
+        # Call Bedrock using the converse API with system prompt
         response = bedrock_client.converse(
             modelId=BEDROCK_MODEL_ID,
             messages=messages,
+            system=[{"text": prompt()}],  # Use proper system parameter
             inferenceConfig={
                 "maxTokens": 2000,
                 "temperature": 0.7,
