@@ -25,7 +25,7 @@ output "cloudfront_url" {
 
 output "api_gateway_url" {
   description = "API Gateway endpoint URL"
-  value       = aws_apigatewayv2_stage.default.invoke_url
+  value       = trimsuffix(aws_apigatewayv2_stage.default.invoke_url, "/")
 }
 
 output "frontend_url" {
