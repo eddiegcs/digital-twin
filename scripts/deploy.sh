@@ -18,12 +18,14 @@ cd terraform
 # terraform init -input=false
 
 # New lines:
+export AWS_DEFAULT_REGION=${DEFAULT_AWS_REGION:-us-west-2}
+export AWS_REGION=${AWS_DEFAULT_REGION}
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-AWS_REGION=${DEFAULT_AWS_REGION:-us-west-2}
+
 terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
-  -backend-config="region=${AWS_REGION}" \
+  -backend-config="region=${AWS_DEFAULT_REGION}" \
   -backend-config="encrypt=true"
 
 if ! terraform workspace list | grep -q "$ENVIRONMENT"; then

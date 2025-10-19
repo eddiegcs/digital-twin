@@ -19,16 +19,16 @@ echo "🗑️ Preparing to destroy ${PROJECT_NAME}-${ENVIRONMENT} infrastructure
 cd "$(dirname "$0")/../terraform"
 
 # Get AWS Account ID and Region for backend configuration
+export AWS_DEFAULT_REGION=${DEFAULT_AWS_REGION:-us-west-2}
+export AWS_REGION=${AWS_DEFAULT_REGION}
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-AWS_REGION=${DEFAULT_AWS_REGION:-us-west-2}
 
 # Initialize terraform with S3 backend
 echo "🔧 Initializing Terraform with S3 backend..."
 terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
-  -backend-config="region=${AWS_REGION}" \
-  -backend-config="dynamodb_table=twin-terraform-locks" \
+  -backend-config="region=${AWS_DEFAULT_REGION}" \
   -backend-config="encrypt=true"
 
 # Check if workspace exists
