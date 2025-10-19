@@ -37,7 +37,7 @@
       "userAgent": "Custom User Agent String",
       "user": null
     },
-    "domainName": "1234567890.execute-api.us-east-1.amazonaws.com",
+    "domainName": "1234567890.execute-api.us-west-2.amazonaws.com",
     "apiId": "1234567890"
   },
   "body": "{\"message\": \"Hello, who are you?\"}",
