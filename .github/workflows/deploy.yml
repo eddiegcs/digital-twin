@@ -60,14 +60,14 @@ jobs:
 
       - name: Run Deployment Script
         run: |
+          # Ensure AWS region is set
+          export AWS_DEFAULT_REGION=us-west-2
+          export AWS_REGION=us-west-2
+          export DEFAULT_AWS_REGION=us-west-2
+          
           # Make script executable and run it
           chmod +x scripts/deploy.sh
           ./scripts/deploy.sh ${{ github.event.inputs.environment || 'dev' }}
-        env:
-          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          DEFAULT_AWS_REGION: ${{ secrets.DEFAULT_AWS_REGION }}
-          AWS_REGION: ${{ secrets.DEFAULT_AWS_REGION }}
           
       - name: Get Deployment URLs
         id: deploy_outputs
